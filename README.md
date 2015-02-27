@@ -1,0 +1,2 @@
+# bit
+Bash Interpolation Tool
