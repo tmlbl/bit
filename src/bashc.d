@@ -1,5 +1,6 @@
-import std.stdio, std.process;
-import std.file, std.string, std.regex;
+import std.stdio, std.process, std.net.curl;
+import std.string, std.regex;
+static import std.file;
 
 
 struct func
@@ -10,6 +11,10 @@ struct func
   long     endIndex;
 }
 
+func[string] ftable;
+
+string stdliburl = "https://raw.githubusercontent.com/tmlbl/bit/master/std.sh";
+
 void main(string[] args)
 {
   // Exit if no file specified
@@ -18,21 +23,11 @@ void main(string[] args)
   }
 
   buildIndex();
+  writeln(ftable);
 
   // Get file contents split into lines
-  auto lines = splitLines(cast(string) read(args[1]));
-  foreach (ln; lines) {
-    long parens = indexOf(ln, "()");
-    bool isFunc = false;
-    // Find the functions!
-    if (parens != -1) {
-      isFunc = true;
-    }
-    if (isFunc) {
-      auto foo = extractf(ln, lines);
-      //writeln(foo);
-    }
-  }
+  auto lines = splitLines(cast(string) std.file.read(args[1]));
+  // Interpolate functions...
 }
 
 // Get all module files
@@ -42,35 +37,41 @@ void buildIndex()
   writeln("Building index...");
   string homepath = environment["HOME"] ~ "/.bit";
   // If the home folder doesn't exist, create it
-  if (!exists(homepath))
+  if (!std.file.exists(homepath))
   {
-    mkdir(homepath);
-    // TODO: get http working
-    //char[] content = get("https://github.com/tmlbl/bit/blob/master/std.sh");
-    //writeln(content);
+    std.file.mkdir(homepath);
+  }
+  if (!std.file.exists(homepath ~ "/std.sh"))
+  {
+    char[] content = get(stdliburl);
+    std.file.write(homepath ~ "/std.sh", content);
   }
   // Iterate through each file in ~/.bit
-  foreach (string name; dirEntries(homepath, SpanMode.breadth))
+  foreach (string name; std.file.dirEntries(homepath, std.file.SpanMode.breadth))
   {
     // Get file contents and split into lines
-    auto lines = splitLines(cast(string) read(name));
-    //writeln(lines);
-    auto funcs = getFuncs(lines);
-    writeln(funcs);
+    auto lines = splitLines(cast(string) std.file.read(name));
+    foreach (fn; getFuncs(lines))
+    {
+      ftable[fn.name] = fn;
+    }
   }
 }
 
 func[] getFuncs(string[] lines)
 {
   func[] result;
-  foreach (ln; lines) {
+  foreach (ln; lines)
+  {
     long parens = indexOf(ln, "()");
     bool isFunc = false;
     // Find the functions!
-    if (parens != -1) {
+    if (parens != -1)
+    {
       isFunc = true;
     }
-    if (isFunc) {
+    if (isFunc)
+    {
       ++result.length;
       result[result.length - 1] = extractf(ln, lines);
     }
@@ -85,16 +86,20 @@ func extractf(string ln, string[] lines)
   long start = 0;
   long end = 0;
   string[] flines;
-  foreach (int i, string c; lines) {
+  foreach (int i, string c; lines)
+  {
     // Locate the function declaration
-    if (indexOf(c, ln) != -1) {
+    if (indexOf(c, ln) != -1)
+    {
       start = i;
     }
     // Grab every line before the closing brace
-    if (start != 0 && end == 0) {
+    if (start != 0 && end == 0)
+    {
       flines.length++;
       flines[flines.length - 1] = c;
-      if (indexOf(c, "}") != -1) {
+      if (indexOf(c, "}") != -1)
+      {
         end = i;
       }
     }

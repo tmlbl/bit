@@ -1,10 +1,10 @@
 default: build
 
 build:
-	- ldc2 -m64 src/bashc.d
+	- dmd -L-lcurl -L-lphobos2 src/bashc.d 
 
 install:
 	- mv bashc /usr/bin/bashc
 
 test:
-	- dmd -run src/bashc.d std.sh
+	- dmd -L-lcurl -L-lphobos2 -run src/bashc.d std.sh

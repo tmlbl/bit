@@ -1,4 +1,5 @@
 #!/bin/bash
+# import std
 
 if std_askyesno "Are you really sure?"; then
   echo "User answered yes"
