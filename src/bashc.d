@@ -1,4 +1,4 @@
-import std.stdio, std.c.process, std.process;
+import std.stdio, std.process;
 import std.file, std.string, std.regex;
 
 
@@ -15,7 +15,6 @@ void main(string[] args)
   // Exit if no file specified
   if (args.length < 2) {
     writeln("No source file specified");
-    exit(1);
   }
 
   buildIndex();
@@ -31,7 +30,7 @@ void main(string[] args)
     }
     if (isFunc) {
       auto foo = extractf(ln, lines);
-      writeln(foo);
+      //writeln(foo);
     }
   }
 }
@@ -46,7 +45,37 @@ void buildIndex()
   if (!exists(homepath))
   {
     mkdir(homepath);
+    // TODO: get http working
+    //char[] content = get("https://github.com/tmlbl/bit/blob/master/std.sh");
+    //writeln(content);
   }
+  // Iterate through each file in ~/.bit
+  foreach (string name; dirEntries(homepath, SpanMode.breadth))
+  {
+    // Get file contents and split into lines
+    auto lines = splitLines(cast(string) read(name));
+    //writeln(lines);
+    auto funcs = getFuncs(lines);
+    writeln(funcs);
+  }
+}
+
+func[] getFuncs(string[] lines)
+{
+  func[] result;
+  foreach (ln; lines) {
+    long parens = indexOf(ln, "()");
+    bool isFunc = false;
+    // Find the functions!
+    if (parens != -1) {
+      isFunc = true;
+    }
+    if (isFunc) {
+      result.length++;
+      result[result.length - 1] = extractf(ln, lines);
+    }
+  }
+  return result;
 }
 
 // Create a bash function instance given a starting line
