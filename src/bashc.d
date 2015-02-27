@@ -14,7 +14,7 @@ void main(string[] args)
 {
   // Exit if no file specified
   if (args.length < 2) {
-    writeln("No source file specified");
+    throw new Exception("No source file specified");
   }
 
   buildIndex();
@@ -71,7 +71,7 @@ func[] getFuncs(string[] lines)
       isFunc = true;
     }
     if (isFunc) {
-      result.length++;
+      ++result.length;
       result[result.length - 1] = extractf(ln, lines);
     }
   }
