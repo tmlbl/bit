@@ -3,7 +3,6 @@ import std.string;
 static import std.file;
 static import std.regex;
 
-
 struct func
 {
   string   name;
@@ -20,14 +19,14 @@ void main(string[] args)
   homepath = environment["HOME"] ~ "/.bit";
   // Exit if no file specified
   if (args.length < 2) {
-    throw new Exception("No source file specified");
+    writeln("Please specify a source file");
+    std.c.process.exit(1);
   }
   // Populate the ftable
   buildIndex();
   foreach (f; ftable)
   {
     writeln(f.name, "  lines: ", f.lines.length);
-    writeln(f.lines);
   }
   // Read the input file lines
   auto lines = splitLines(cast(string) std.file.read(args[1]));
@@ -106,17 +105,20 @@ func extractf(int ix, string[] lines)
       flines.length++;
       flines[flines.length - 1] = lines[i];
     }
-    // Determine the end of the function block
-    if (indexOf(lines[i], "{") != -1)
+    foreach (ch; lines[i])
     {
-      block_depth++;
-    }
-    if (indexOf(lines[i], "}") != -1)
-    {
-      block_depth--;
-      if (block_depth == 0)
+      // Determine the end of the function block
+      if (ch == '{')
       {
-        end = i;
+        block_depth++;
+      }
+      if (ch == '}')
+      {
+        block_depth--;
+        if (block_depth == 0)
+        {
+          end = i;
+        }
       }
     }
   }
