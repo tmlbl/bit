@@ -5,16 +5,48 @@ static import std.regex;
 import std.conv;
 import consoled;
 
+/**
+ * A function has a name and an array of lines.
+ * The name is the full name of the function, i.e.
+ *    std_askyesno
+ */
 struct func
 {
   string   name;
   string[] lines;
 }
 
-func[string] ftable;
+/**
+ * A module has an array of functions and a name.
+ * The name is the part of the functions before the '_', i.e.
+ *    std
+ */
+struct modl
+{
+  string       name;
+  func[string] funcs;
+}
 
-string stdliburl = "https://raw.githubusercontent.com/tmlbl/bit/master/std.sh";
+/**
+ *
+ */
+class Lib
+{
+  modl[string] modules;
+  void bar()
+  {
+    writeln("bad bar");
+  }
+}
+
+// All modules
+func[string] flib;
+
+// Absolute path to ~/.bit
 string homepath;
+
+string stdliburl = "https://raw.githubusercontent.com" ~
+  "/tmlbl/bit/master/std.sh";
 
 void main(string[] args)
 {
@@ -24,7 +56,7 @@ void main(string[] args)
     writeln("Please specify a source file");
     std.c.process.exit(1);
   }
-  // Populate the ftable
+  // Populate the flib
   buildIndex();
 
   if (args[1] == "list")
@@ -37,12 +69,12 @@ void main(string[] args)
   interpolate(lines);
 }
 
-// Print information about ftable and exit
+// Print information about flib and exit
 void list()
 {
   int padding = 5;
   int linelen = 0;
-  foreach (fn; ftable)
+  foreach (fn; flib)
   {
     if (fn.name.length + padding > linelen)
     {
@@ -61,7 +93,7 @@ void list()
     //return to!string(res);
     return format("%s", res);
   }
-  foreach (fn; ftable)
+  foreach (fn; flib)
   {
     writeln(fn.name, spaces(fn), fn.lines.length, " lines");
   }
@@ -80,6 +112,7 @@ void buildIndex()
   {
     std.file.mkdir(homepath);
   }
+  // Get the standard lib if it's not there
   if (!std.file.exists(homepath ~ "/std.sh"))
   {
     char[] content = get(stdliburl);
@@ -92,7 +125,7 @@ void buildIndex()
     auto lines = splitLines(cast(string) std.file.read(name));
     foreach (fn; getFuncs(lines))
     {
-      ftable[fn.name] = fn;
+      flib[fn.name] = fn;
     }
   }
 }
