@@ -1,0 +1,9 @@
+{
+    "project": "bashc",
+    "dependencies": [
+        {
+            "url": "https://github.com/robik/ConsoleD.git",
+            "path": "src/consoled"
+        }
+    ]
+}

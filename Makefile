@@ -1,11 +1,14 @@
 default: build
 
 build:
-	- dmd -L-lcurl -L-lphobos2 src/bashc.d
+	- dmd -L-lcurl -L-lphobos2 src/bashc.d src/consoled/source/consoled.d
 
 install:
 	- mv bashc /usr/bin/bashc
 
-test:
+test: build
 	- cp std.sh ~/std.sh
-	- dmd -L-lcurl -L-lphobos2 -run src/bashc.d std.sh
+	- ./bashc std.sh
+
+clean:
+	- rm bashc

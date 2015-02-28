@@ -2,6 +2,8 @@ import std.stdio, std.process, std.net.curl;
 import std.string;
 static import std.file;
 static import std.regex;
+import std.conv;
+import consoled;
 
 struct func
 {
@@ -24,27 +26,55 @@ void main(string[] args)
   }
   // Populate the ftable
   buildIndex();
-  foreach (f; ftable)
+
+  if (args[1] == "list")
   {
-    writeln(f.name, "  lines: ", f.lines.length);
+    list();
   }
+
   // Read the input file lines
   auto lines = splitLines(cast(string) std.file.read(args[1]));
+  interpolate(lines);
 }
 
-unittest
+// Print information about ftable and exit
+void list()
 {
-  assert(true);
-  // Should not be considered comments
-  //"$#", ${#foo}, string="this # string",
-  // string='that # string', ${foo#bar}, ${foo##baar},
+  int padding = 5;
+  int linelen = 0;
+  foreach (fn; ftable)
+  {
+    if (fn.name.length + padding > linelen)
+    {
+      linelen = to!int(fn.name.length + padding);
+    }
+  }
+  string spaces(func fn)
+  {
+    string res;
+    string name = fromStringz(toStringz(fn.name));
+    auto numspaces = linelen - res.length;
+    for (int i = 0; i < numspaces; i++)
+    {
+      res = res ~ " ";
+    }
+    //return to!string(res);
+    return format("%s", res);
+  }
+  foreach (fn; ftable)
+  {
+    writeln(fn.name, spaces(fn), fn.lines.length, " lines");
+  }
+  std.c.process.exit(0);
 }
 
 // Get all module files
 // Create the JSON cache of all function objects
 void buildIndex()
 {
+  foreground = Color.blue;
   writeln("Building index...");
+  resetColors();
   // If the home folder doesn't exist, create it
   if (!std.file.exists(homepath))
   {
@@ -98,9 +128,9 @@ func extractf(int ix, string[] lines)
   int block_depth = 0;
   string[] flines;
 
-  for (long i = ix; i < lines.length; i++)
+  for (long i = ix; end == 0; i++)
   {
-    if (block_depth > 0 && end == 0)
+    if (block_depth > 0)
     {
       flines.length++;
       flines[flines.length - 1] = lines[i];
@@ -123,4 +153,9 @@ func extractf(int ix, string[] lines)
     }
   }
   return *new func(name, flines);
+}
+
+void interpolate(string[] lines)
+{
+
 }
