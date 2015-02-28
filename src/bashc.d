@@ -28,7 +28,7 @@ struct modl
 }
 
 /**
- *
+ * All modules
  */
 class Lib
 {
@@ -52,7 +52,8 @@ void main(string[] args)
 {
   homepath = environment["HOME"] ~ "/.bit";
   // Exit if no file specified
-  if (args.length < 2) {
+  if (args.length < 2)
+  {
     writeln("Please specify a source file");
     std.c.process.exit(1);
   }
@@ -85,7 +86,7 @@ void list()
   {
     string res;
     string name = fromStringz(toStringz(fn.name));
-    auto numspaces = linelen - res.length;
+    auto numspaces = linelen - name.length;
     for (int i = 0; i < numspaces; i++)
     {
       res = res ~ " ";
