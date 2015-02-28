@@ -1,7 +1,7 @@
 default: build
 
 build:
-	- dmd -L-lcurl -L-lphobos2 src/bashc.d 
+	- dmd -L-lcurl -L-lphobos2 src/bashc.d
 
 install:
 	- mv bashc /usr/bin/bashc
