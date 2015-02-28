@@ -1,6 +1,7 @@
 import std.stdio, std.process, std.net.curl;
 import std.string;
 static import std.file;
+static import std.regex;
 
 
 struct func
@@ -25,7 +26,8 @@ void main(string[] args)
   buildIndex();
   foreach (f; ftable)
   {
-    writeln(f.name);
+    writeln(f.name, "  lines: ", f.lines.length);
+    writeln(f.lines);
   }
   // Read the input file lines
   auto lines = splitLines(cast(string) std.file.read(args[1]));
@@ -69,7 +71,7 @@ void buildIndex()
 func[] getFuncs(string[] lines)
 {
   func[] result;
-  foreach (ln; lines)
+  foreach (int i, string ln; lines)
   {
     long parens = indexOf(ln, "()");
     bool isFunc = false;
@@ -81,46 +83,40 @@ func[] getFuncs(string[] lines)
     if (isFunc)
     {
       ++result.length;
-      result[result.length - 1] = extractf(ln, lines);
+      result[result.length - 1] = extractf(i, lines);
     }
   }
   return result;
 }
 
-// Create a bash function instance given a starting line
-func extractf(string ln, string[] lines)
+// Create a bash function instance given a starting index and lines array
+func extractf(int ix, string[] lines)
 {
-  auto name = chomp(std.regex.matchFirst(ln, r"\S*\(\)")[0], "()");
+  auto name = chomp(std.regex.matchFirst(lines[ix], r"\S*\(\)")[0], "()");
   name = removechars(name, " ".dup);
-  long start = 0;
+  long start = ix;
   long end = 0;
   int block_depth = 0;
   string[] flines;
 
-  foreach (int i, string c; lines)
+  for (long i = ix; i < lines.length; i++)
   {
-    // Locate the function declaration
-    if (indexOf(c, ln) != -1)
-    {
-      start = i;
-    }
-    // Grab every line before the function close
-    if (start != 0 && end == 0)
+    if (block_depth > 0 && end == 0)
     {
       flines.length++;
-      flines[flines.length - 1] = c;
-      // Determine the end of the function block
-      if (indexOf(c, "{") != -1)
+      flines[flines.length - 1] = lines[i];
+    }
+    // Determine the end of the function block
+    if (indexOf(lines[i], "{") != -1)
+    {
+      block_depth++;
+    }
+    if (indexOf(lines[i], "}") != -1)
+    {
+      block_depth--;
+      if (block_depth == 0)
       {
-        block_depth++;
-      }
-      if (indexOf(c, "}") != -1)
-      {
-        block_depth--;
-        if (block_depth == 0)
-        {
-          end = i;
-        }
+        end = i;
       }
     }
   }
